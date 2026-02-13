@@ -1,96 +1,114 @@
-// Variable to store the ID returned by watchPosition()
-// This lets us stop GPS tracking later.
+// ---------------------------------------------
+// GLOBAL VARIABLES
+// ---------------------------------------------
+
+// This will store the ID returned by watchPosition()
+// so we can stop the GPS watcher later.
 let watchId = null;
 
-// Stores the last known GPS position so we can compute distance
-let lastPosition = null;
+// This will store the ID returned by setInterval()
+// so we can stop the 3-second timer later.
+let intervalId = null;
 
-// Boolean flag so we don't start tracking twice
+// This will always hold the *most recent* GPS reading.
+// The interval timer will log this every 3 seconds.
+let latestPosition = null;
+
+// This stores the previous logged position so we can compute distance.
+let lastLoggedPosition = null;
+
+// Boolean flag to prevent starting tracking twice.
 let tracking = false;
 
-// Attach the startTracking function to the Start button
-document.getElementById("startBtn").onclick = () => startTracking();
 
-// Attach the stopTracking function to the Stop button
+// ---------------------------------------------
+// BUTTON EVENT HANDLERS
+// ---------------------------------------------
+
+document.getElementById("startBtn").onclick = () => startTracking();
 document.getElementById("stopBtn").onclick = () => stopTracking();
 
 
-// -------------------------------
-// START TRACKING FUNCTION
-// -------------------------------
+// ---------------------------------------------
+// START TRACKING
+// ---------------------------------------------
 function startTracking() {
 
-  /* If tracking is already running (aka if tracking = true), 
-do nothing because we don't want tracking to happen twice. 
-For instance, if user accidentally pressed on the "Start 
-Tracking' button twice, then this prevents the tracking to be duplicated */
+  // If tracking is already running, do nothing.
   if (tracking) return;
 
-  // Mark that tracking has begun
+  // Mark that tracking has begun.
   tracking = true;
 
-  // Begin watching the user's GPS position
-  // watchPosition continuously calls our callback whenever GPS updates
+  // Start watching the GPS. This does NOT log every 3 seconds.
+  // It simply updates "latestPosition" whenever the GPS gives new data.
   watchId = navigator.geolocation.watchPosition(
-
-    // SUCCESS CALLBACK: runs every time the GPS gives a new reading
-    position => {
-      logPosition(position);  // send the position to our logging function
+    pos => {
+      // Always store the newest GPS reading.
+      latestPosition = pos;
     },
-
-    // ERROR CALLBACK: runs if GPS fails or permission denied
-    error => console.error(error),
-
-    // OPTIONS OBJECT: tells GPS how accurate and fresh we want the data
+    err => console.error(err),
     {
-      enableHighAccuracy: true, // request best possible accuracy
-      maximumAge: 0,            // do not use cached locations
-      timeout: 5000             // give up if GPS takes longer than 5 seconds
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 5000
     }
   );
+
+  // Start a strict 3-second timer.
+  // Every 3000 ms, we log whatever the latest GPS reading is.
+  intervalId = setInterval(() => {
+    if (latestPosition) {
+      logPosition(latestPosition);
+    }
+  }, 3000);
 }
 
 
-// -------------------------------
-// STOP TRACKING FUNCTION
-// -------------------------------
+// ---------------------------------------------
+// STOP TRACKING
+// ---------------------------------------------
 function stopTracking() {
 
-  // Mark that tracking has stopped
+  // Mark that tracking has stopped.
   tracking = false;
 
-  // If watchPosition is active, stop it
+  // Stop the GPS watcher.
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
   }
+
+  // Stop the 3-second logging timer.
+  if (intervalId !== null) {
+    clearInterval(intervalId);
+  }
 }
 
 
-// -------------------------------
-// LOG POSITION FUNCTION
-// Called every time GPS gives a new reading
-// -------------------------------
+// ---------------------------------------------
+// LOG POSITION (runs every 3 seconds)
+// ---------------------------------------------
 function logPosition(pos) {
 
-  // Extract latitude and longitude from the GPS reading
+  // Extract latitude and longitude.
   const lat = pos.coords.latitude;
   const lon = pos.coords.longitude;
 
-  // Default distance is 0 (for the very first reading)
+  // Default distance is 0 for the first logged point.
   let distance = 0;
 
-  // If we have a previous position, compute distance from last point
-  if (lastPosition) {
+  // If we have a previous logged point, compute distance.
+  if (lastLoggedPosition) {
     distance = haversine(
-      lastPosition.lat, lastPosition.lon,  // previous point
-      lat, lon                             // current point
+      lastLoggedPosition.lat, lastLoggedPosition.lon,
+      lat, lon
     );
   }
 
-  // Update lastPosition so next reading can compare to this one
-  lastPosition = { lat, lon };
+  // Update last logged position.
+  lastLoggedPosition = { lat, lon };
 
-  // Build a new table row with timestamp, lat, lon, and distance
+  // Build a new table row.
   const row = `
     <tr>
       <td>${new Date().toLocaleTimeString()}</td>
@@ -100,34 +118,34 @@ function logPosition(pos) {
     </tr>
   `;
 
-  // Append the row to the table body
+  // Append the row to the table.
   document.getElementById("logTable").innerHTML += row;
 }
 
 
-// -------------------------------
-// HAVERSINE DISTANCE FUNCTION
-// Computes distance between two GPS points in meters
-// -------------------------------
+// ---------------------------------------------
+// HAVERSINE DISTANCE FORMULA
+// Computes distance between two GPS points in meters.
+// ---------------------------------------------
 function haversine(lat1, lon1, lat2, lon2) {
 
-  // Radius of Earth in meters
+  // Radius of Earth in meters.
   const R = 6371000;
 
-  // Helper function to convert degrees → radians
+  // Convert degrees → radians.
   const toRad = x => x * Math.PI / 180;
 
-  // Differences in latitude and longitude (in radians)
+  // Differences in latitude and longitude.
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
 
-  // Haversine formula
+  // Haversine formula.
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) *
     Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) ** 2;
 
-  // Final distance in meters
+  // Final distance in meters.
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
