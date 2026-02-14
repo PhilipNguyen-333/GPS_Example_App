@@ -2,13 +2,25 @@
 // GLOBAL VARIABLES
 // ---------------------------------------------
 
-let watchId = null;
-let intervalId = null;
-let latestPosition = null;
-let lastLoggedPosition = null;
-let tracking = false;
+let watchId = null; /* watchId is needed to run the watchPosition() method. 
+The watchPosition() method will input a unique number into the watchID variable, 
+thereby making watchId no longer "null". Visit the website below for more details:
+https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/watchPosition */
+let intervalId = null; /* intervalId is needed to run the setInterval() method. 
+The setInterval method allows you to run a function repeatedly with a specified
+time interval. Visit the website below for more information:
+https://www.w3schools.com/jsref/met_win_setinterval.asp */
+let latestPosition = null; /* latestPosition is a variable that will store 
+the most recent GPS coordinates */
+let lastLoggedPosition = null; /*lastLoggedPosition is a variable that will
+store the GPS coordinates that occurred immediately before latestPosition */
+let tracking = false; /* we will use this tracking variable to help the code
+know when tracking is occurring and when it has stopped. This variable will 
+help the code know to not duplicate tracking if the user pressed the "Start
+Tracking" button twice */
 let firstLogTime = null;
-let totaldist = 0;
+let totaldist = 0; /* this totaldistance variable will store our
+total distance travlled */
 
 // Arrays for graphing
 let timeData = [];
@@ -60,38 +72,53 @@ createChart();
 // ---------------------------------------------
 document.getElementById("startBtn").onclick = function() {
   startTracking();
-};
+}; // when user presses the "Start Tracking" button, the startTracking() function is activated
 
 document.getElementById("stopBtn").onclick = function() {
   stopTracking();
-};
+}; // when user presses the "Stop Tracking" button, the stopTracking() function is activated
 
 
 // ---------------------------------------------
-// START TRACKING
+// START TRACKING: the function that runs when the user presses the "Start Tracking" button
 // ---------------------------------------------
 function startTracking() {
 
   if (tracking) {
     return;
-  }
+  } /* this if statement prevents the program from duplicating GPS
+  tracking. This prevents duplication of tracking from happening if the user 
+  accidently pressed the "Start Tracking" button twice */
+  
 
   tracking = true;
 
+  /* The watchPosition() method has THREE inputs. Its job is 
+  to pull your device's GPS data EACH time your device spits 
+  out new GPS coordinates. This method is very powerful since
+  it acts like a loop where it will forever collect GPS data.
+  Every device has its own internal clock of when it spits out 
+  new GPS coordinates. (Some devices have new coordinates every second, some every 15 seconds, etc.) */ 
   watchId = navigator.geolocation.watchPosition(
     function(pos) {
       latestPosition = pos;
-    },
+    } /* Input #1: a callback function used to put the new GPS 
+    coordinates into the variable latestPosition, thereby converting
+    latestPosition from being "null" to having true GPS values */,
     function(err) {
       console.error(err);
-    },
+    } /* Input #2: a callback function that tells your program
+    what to do if the GPS coordinates failed to load */,
     {
       enableHighAccuracy: true,
       maximumAge: 0,
       timeout: 5000
-    }
+    } /* Input #3: an object which gives specific configuration options */
   );
 
+  /* The setInterval() method below tells the program to run the
+  logPosition() function every 3 seconds if latestPosition is true 
+  (meaning latestPosition has true GPS values and is not "null") */
   intervalId = setInterval(function() {
     if (latestPosition) {
       logPosition(latestPosition);
@@ -101,19 +128,22 @@ function startTracking() {
 
 
 // ---------------------------------------------
-// STOP TRACKING
+// STOP TRACKING: the function that runs when the user presses the "Stop Tracking" button
 // ---------------------------------------------
 function stopTracking() {
 
-  tracking = false;
+  tracking = false; /* we want the tracking variable to be an indicator
+  of if we are in the process of tracking (true or not tracking (false) */ 
 
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
-  }
+  } /* clearing the watchId is how we stop the watchPosition() method from 
+  tracking GPS coordinates */
 
   if (intervalId !== null) {
     clearInterval(intervalId);
-  }
+  } /* clearing the intervalId is how we stop the setInterval() method from 
+  looping every 3 seconds */
 
   // Reset for next run
   firstLogTime = null;
@@ -129,15 +159,19 @@ function stopTracking() {
 
 
 // ---------------------------------------------
-// LOG POSITION (runs every 3 seconds)
+// LOG POSITION: this function contains all the actions we want to happen every 3 seconds
 // ---------------------------------------------
 function logPosition(pos) {
 
-  const lat = pos.coords.latitude;
-  const lon = pos.coords.longitude;
+  const lat = pos.coords.latitude; // store the latitude of the most recent GPS coordinates
+  const lon = pos.coords.longitude; // store the longitude of the most recent GPS coordinates
 
-  let distance = 0;
-  let distance2 = 0;
+  let distance = 0; /* updates the distance to be 0 at the start 
+  of each operation of the logPosition() function. This distance
+  variable will track the distance using the Haversine formula */
+  let distance2 = 0; /* updates the distance2 to be 0 at the start 
+  of each operation of the logPosition() function. This distance2
+  variable will track the distance using a modified distance formula */
 
   // Elapsed time logic
   let elapsedSeconds = 0;
