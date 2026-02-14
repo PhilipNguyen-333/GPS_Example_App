@@ -20,7 +20,7 @@ help the code know to not duplicate tracking if the user pressed the "Start
 Tracking" button twice */
 let firstLogTime = null;
 let totaldist = 0; /* this totaldistance variable will store our
-total distance travlled */
+total distance travelled */
 
 // Arrays for graphing
 let timeData = [];
@@ -203,7 +203,11 @@ function logPosition(pos) {
     previous totaldist each time we run the logPosition() function */
   }
 
-  lastLoggedPosition = { lat: lat, lon: lon };
+  lastLoggedPosition = { lat: lat, lon: lon }; /* the most recent latitude and longitude 
+  data is stored into our lastLoggedPosition variable. When the logPosition() function
+  is activated next time, we will have another set of EVEN MORE recent latitude and 
+  longitude data that will be compared with lastLoggedPosition in order to derive
+  distances. */
 
   // ---------------------------------------------
   // UPDATE GRAPH
@@ -235,18 +239,18 @@ function logPosition(pos) {
 
 
 // ---------------------------------------------
-// HAVERSINE DISTANCE FORMULA
+// HAVERSINE DISTANCE FORMULA: this function inputs your two GPS coordinates and spits out the distance between them using the Haversine formula
 // ---------------------------------------------
 function haversine(lat1, lon1, lat2, lon2) {
 
-  const R = 6371000;
+  const R = 6371000; // radius of the Earth in meters
 
   function toRad(x) {
     return x * Math.PI / 180;
-  }
+  } // an embedded function that converts your degrees latitude and longitude into radians 
 
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+  const dLat = toRad(lat2 - lat1); // find the radians between your two latitudes
+  const dLon = toRad(lon2 - lon1); // find the radians between your two longitudes
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -254,30 +258,30 @@ function haversine(lat1, lon1, lat2, lon2) {
     Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); // returns this value as your distance
 }
 
 
 // ---------------------------------------------
-// FLAT-EARTH DISTANCE FORMULA
+// MODIFIED DISTANCE FORMULA: this function inputs your two GPS coordinates and spits out the distance between them using a modified distance formula
 // ---------------------------------------------
 function distFormula(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
+  const R = 6371000; // radius of the Earth in meters
 
   function toRad(x) {
     return x * Math.PI / 180;
-  }
+  } // an embedded function that converts your degrees latitude and longitude into radians 
 
-  let dLat = lat2 - lat1;
-  let dLon = lon2 - lon1;
+  let dLat = lat2 - lat1; // find the radians between your two latitudes
+  let dLon = lon2 - lon1; // find the radians between your two longitudes
 
-  if (dLon > 180) dLon -= 360;
-  if (dLon < -180) dLon += 360;
+  if (dLon > 180) dLon -= 360; // accounting for the scenario where your longitudes "wrap" around and inflate your change in angle
+  if (dLon < -180) dLon += 360; // accounting for the scenario where your longitudes "wrap" around and inflate your change in angle
 
-  const phi = toRad((lat1 + lat2) / 2);
+  const phi = toRad((lat1 + lat2) / 2); // adjusting how the distance between your longitudes is different based on your latitude level 
 
-  const x = toRad(dLon) * R * Math.cos(phi);
-  const y = toRad(dLat) * R;
+  const x = toRad(dLon) * R * Math.cos(phi); // finding the horizontal change (with an extra cosine term to adjust for the fact that longitudes converge at the poles)
+  const y = toRad(dLat) * R; // finding the vertical change
 
-  return Math.sqrt(x*x + y*y);
+  return Math.sqrt(x*x + y*y); // returns the value as produced by the distance formula
 }
