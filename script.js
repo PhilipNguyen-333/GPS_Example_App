@@ -20,8 +20,8 @@ let lastLoggedPosition = null;
 // Prevents starting tracking twice.
 let tracking = false;
 
-// Create the startTime variable and start with it being null
-let startTime = null;
+// Create a variable that allows us to compute elapsed time
+let firstLogTime = null;
 
 // ---------------------------------------------
 // BUTTON EVENT HANDLERS
@@ -49,8 +49,6 @@ function startTracking() {
   // Mark that tracking has begun.
   tracking = true;
 
-  // Set the start time!
-  startTime = Date.now(); // marks the moment tracking began
   // Start watching the GPS. This does NOT log every 3 seconds.
   // It simply updates "latestPosition" whenever the GPS gives new data.
   watchId = navigator.geolocation.watchPosition(
@@ -110,9 +108,17 @@ function logPosition(pos) {
   // Default distance is 0 for the first logged point.
   let distance = 0;
   let distance2 = 0;
+  /* Code below triggers the firstLogTime to possess 
+  the time at when the first timestamp occurs. 
+  After firstLogTime has a value, the code then updates
+  the time elapsed */
+
   let elapsedSeconds = 0;
-  if (startTime !== null) {
-    elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+  if (firstLogTime === null) {
+    firstLogTime = Date.now();
+  }
+  if (firstLogTime !== null) {
+    elapsedSeconds = Math.floor((Date.now() - firstLogTime) / 1000);
   }
   // If we have a previous logged point, compute distance.
   if (lastLoggedPosition) {
