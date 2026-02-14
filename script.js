@@ -174,25 +174,33 @@ function logPosition(pos) {
   variable will track the distance using a modified distance formula */
 
   // Elapsed time logic
-  let elapsedSeconds = 0;
   if (firstLogTime === null) {
     firstLogTime = Date.now();
-  }
-  elapsedSeconds = Math.floor((Date.now() - firstLogTime) / 1000);
+  } /* this if statement uses the .now() method, which basically gives
+  a timestamp (but in terms of number of milliseconds that have elapsed 
+  since Jan 1, 1970). This if statement gives a timestamp to the
+  firstLogTime variable only when the firstlogTime variable was previously "null".
+  Very handy since we ONLY want to give a timestamp to firstLogTime on the
+  FIRST occurrence.*/
+  let elapsedSeconds = Math.floor((Date.now() - firstLogTime) / 1000); // elapsedSeconds tells us the amount of time that has elapsed since the firstLogTime
 
   // Compute distances
   if (lastLoggedPosition) {
     distance = haversine(
       lastLoggedPosition.lat, lastLoggedPosition.lon,
       lat, lon
-    );
+    ); /* this if statement tells the program to update distance using 
+    the haversine() function if we have a lastLoggedPosition.*/
 
     distance2 = distFormula(
       lastLoggedPosition.lat, lastLoggedPosition.lon,
       lat, lon
-    );
+    ); /* this if statement tells the program to update distance2 using 
+    the distFormula() function if we have a lastLoggedPosition. */
 
-    totaldist += distance2;
+    totaldist = totaldist + distance2; /* the totaldist variable is equal to adding up all of the 
+    distance2 values. An easy way to do this is by recursively adding distance2 to the 
+    previous totaldist each time we run the logPosition() function */
   }
 
   lastLoggedPosition = { lat: lat, lon: lon };
