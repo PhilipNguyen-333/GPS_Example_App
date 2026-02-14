@@ -35,7 +35,7 @@ let totaldistanceChart = null; // this totaldistanceChart will eventually hold t
 
 
 // ---------------------------------------------
-// CREATE THE CHART
+// CREATE THE CHART: for more info on how to create a line chart: https://www.chartjs.org/docs/latest/charts/line.html
 // ---------------------------------------------
 function createChart() {
   const ctx = document.getElementById("totaldistanceChart").getContext("2d"); // grabs the <canvas> element from HTML
