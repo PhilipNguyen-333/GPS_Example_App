@@ -2,22 +2,22 @@
 // GLOBAL VARIABLES
 // ---------------------------------------------
 
-// This will store the ID returned by watchPosition()
-// so we can stop the GPS watcher later.
+// Stores the ID returned by watchPosition()
+// so we can stop GPS tracking later.
 let watchId = null;
 
-// This will store the ID returned by setInterval()
+// Stores the ID returned by setInterval()
 // so we can stop the 3-second timer later.
 let intervalId = null;
 
-// This will always hold the *most recent* GPS reading.
-// The interval timer will log this every 3 seconds.
+// Always holds the most recent GPS reading.
+// The 3-second timer will log this value.
 let latestPosition = null;
 
-// This stores the previous logged position so we can compute distance.
+// Stores the last logged position so we can compute distance.
 let lastLoggedPosition = null;
 
-// Boolean flag to prevent starting tracking twice.
+// Prevents starting tracking twice.
 let tracking = false;
 
 
@@ -25,8 +25,13 @@ let tracking = false;
 // BUTTON EVENT HANDLERS
 // ---------------------------------------------
 
-document.getElementById("startBtn").onclick = () => startTracking();
-document.getElementById("stopBtn").onclick = () => stopTracking();
+document.getElementById("startBtn").onclick = function() {
+  startTracking();
+};
+
+document.getElementById("stopBtn").onclick = function() {
+  stopTracking();
+};
 
 
 // ---------------------------------------------
@@ -35,7 +40,9 @@ document.getElementById("stopBtn").onclick = () => stopTracking();
 function startTracking() {
 
   // If tracking is already running, do nothing.
-  if (tracking) return;
+  if (tracking) {
+    return;
+  }
 
   // Mark that tracking has begun.
   tracking = true;
@@ -43,11 +50,13 @@ function startTracking() {
   // Start watching the GPS. This does NOT log every 3 seconds.
   // It simply updates "latestPosition" whenever the GPS gives new data.
   watchId = navigator.geolocation.watchPosition(
-    pos => {
+    function(pos) {
       // Always store the newest GPS reading.
       latestPosition = pos;
     },
-    err => console.error(err),
+    function(err) {
+      console.error(err);
+    },
     {
       enableHighAccuracy: true,
       maximumAge: 0,
@@ -57,7 +66,7 @@ function startTracking() {
 
   // Start a strict 3-second timer.
   // Every 3000 ms, we log whatever the latest GPS reading is.
-  intervalId = setInterval(() => {
+  intervalId = setInterval(function() {
     if (latestPosition) {
       logPosition(latestPosition);
     }
@@ -106,7 +115,7 @@ function logPosition(pos) {
   }
 
   // Update last logged position.
-  lastLoggedPosition = { lat, lon };
+  lastLoggedPosition = { lat: lat, lon: lon };
 
   // Build a new table row.
   const row = `
@@ -133,7 +142,9 @@ function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000;
 
   // Convert degrees → radians.
-  const toRad = x => x * Math.PI / 180;
+  function toRad(x) {
+    return x * Math.PI / 180;
+  }
 
   // Differences in latitude and longitude.
   const dLat = toRad(lat2 - lat1);
@@ -141,10 +152,10 @@ function haversine(lat1, lon1, lat2, lon2) {
 
   // Haversine formula.
   const a =
-    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
     Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) ** 2;
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
   // Final distance in meters.
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
