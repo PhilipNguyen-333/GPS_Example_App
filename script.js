@@ -18,44 +18,49 @@ let tracking = false; /* we will use this tracking variable to help the code
 know when tracking is occurring and when it has stopped. This variable will 
 help the code know to not duplicate tracking if the user pressed the "Start
 Tracking" button twice */
-let firstLogTime = null;
+let firstLogTime = null; /* firstLogTime is a variable which will store the 
+timestamp for when the first GPS coordinates were attained */
 let totaldist = 0; /* this totaldistance variable will store our
 total distance travelled */
 
 // Arrays for graphing
-let timeData = [];
-let distanceData = [];
+let timeData = []; // this timeData array will store the x-axis values (0, 3, 6, 9 seconds)
+let totaldistanceData = []; // this totaldistanceData array will store the y-axis values (which are the total distance values)
+/* whenever we use Chart.js to create the chart, it will look at our timeData 
+and totaldistanceData, then automatically rescale our graph and units using
+an algorithm */
 
 // Chart object
-let totaldistanceChart = null;
+let totaldistanceChart = null; // this totaldistanceChart will eventually hold the Chart.js instance
 
 
 // ---------------------------------------------
 // CREATE THE CHART
 // ---------------------------------------------
 function createChart() {
-  const ctx = document.getElementById("totaldistanceChart").getContext("2d");
-
-  totaldistanceChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: timeData,
-      datasets: [{
-        label: 'Total Distance (m)',
-        data: distanceData,
-        borderColor: 'blue',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.2
+  const ctx = document.getElementById("totaldistanceChart").getContext("2d"); // grabs the <canvas> element from HTML
+/* "new Chart(...)" has two arguments. The first one tells you what canvas 
+will be used to draw the chart. The second one instructs how to draw the chart */
+  totaldistanceChart = new Chart(ctx /*first argument*/, { /*second argument */
+    type: 'line', // there are many chart types to choose from. We will use the line chart
+    data: { // specifies what data to show on the chart
+      labels: timeData, // these are the x-axis values
+      datasets: [{ // "dataset" pertain to the y-axis values
+        label: 'Total Distance (m)', // labelling the LEGEND (at the top of the graph) as 'Total Distance (m)'
+        data: totaldistanceData, // using totaldistanceData as the y-values
+        borderColor: 'blue', // color of the line
+        borderWidth: 2, // thickness of the line
+        fill: false, // the area under the curve is NOT filled in
+        tension: 0.2 // smoothness of the curves
       }]
     },
-    options: {
-      responsive: true,
+    options: { // controls how the chart behaves and looks
+      responsive: true, // resizes the chart automatically when the window or device size changes
       scales: {
-        x: {
+        x: { // creates the label for the x-axis and actually displays it on the chart
           title: { text: 'Time (s)', display: true }
         },
-        y: {
+        y: { // creates the label for the y-axis and actually displays it on the chart
           title: { text: 'Total Distance (m)', display: true }
         }
       }
@@ -149,11 +154,11 @@ function stopTracking() {
   firstLogTime = null;
   lastLoggedPosition = null;
   totaldist = 0;
-  timeData.length = 0;
-  distanceData.length = 0;
+  timeData.length = 0; // we cleared the timeData array so that it no longer stores any x-values
+  totaldistanceData.length = 0; // we cleared the totaldistanceData array so that it no longer stores any y-values
 
   if (totaldistanceChart) {
-    totaldistanceChart.update();
+    totaldistanceChart.update(); // we update the chart to have no x nor y values due to timeData and totaldistanceData having stored values
   }
 }
 
@@ -212,15 +217,19 @@ function logPosition(pos) {
   // ---------------------------------------------
   // UPDATE GRAPH
   // ---------------------------------------------
-  timeData.push(elapsedSeconds);
-  distanceData.push(totaldist);
+  timeData.push(elapsedSeconds); /* tells the program to put the new value for 
+  elapsedSeconds into the timeData array */
+  totaldistanceData.push(totaldist); /* tells the program to put the new value for 
+  totaldist into the totaldistanceData array */
 
-  if (totaldistanceChart) {
-    totaldistanceChart.update();
+  if (totaldistanceChart) { // we only draw the chart IF the chart already exists
+    totaldistanceChart.update(); // tells Chart.js to redraw the chart using the current data
   }
 
   // ---------------------------------------------
-  // UPDATE TABLE
+  /* UPDATE TABLE: each <td> </td> line of code represents a column in the table. The order of the columns 
+  (from left to right) correspond to the <td> </td> lines (from top to bottom). This table has 7 columns and must
+  match the table found in the index.html file. */
   // ---------------------------------------------
   const row = `
     <tr>
@@ -234,7 +243,7 @@ function logPosition(pos) {
     </tr>
   `;
 
-  document.getElementById("logTable").innerHTML += row;
+  document.getElementById("logTable").innerHTML += row; // adds a new row to the table each time logPosition() is activated
 }
 
 
