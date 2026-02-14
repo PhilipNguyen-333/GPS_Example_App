@@ -113,6 +113,13 @@ function logPosition(pos) {
       lat, lon
     );
   }
+  //PHILIP: If we have a previous logged piont, then compute distance using distance formula.
+  if (lastLoggedPosition) {
+    distance2 = distFormula(
+      lastLoggedPosition.lat, lastLoggedPosition.lon, 
+      lat, lon
+    );
+  }
 
   // Update last logged position.
   lastLoggedPosition = { lat: lat, lon: lon };
@@ -124,6 +131,7 @@ function logPosition(pos) {
       <td>${lat.toFixed(6)}</td>
       <td>${lon.toFixed(6)}</td>
       <td>${distance.toFixed(2)}</td>
+      <td>${distance2.toFixed(2)}</td>
     </tr>
   `;
 
@@ -159,4 +167,26 @@ function haversine(lat1, lon1, lat2, lon2) {
 
   // Final distance in meters.
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function distFormula(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Earth radius in meters
+  // Convert degrees to radians
+  function toRad(x) {
+    return x * Math.PI / 180;
+  }
+  let dLat = lat2 - lat1;
+  let dLon = lon2 - lon1;
+
+  // Make sure the longitude difference accurately represents the difference in longitude 
+  if (dLon > 180) dLon -= 360;
+  if (dLon < -180) dLon += 360;
+  // Take the average latitude to scale your x-value (since the difference in two longitudes vary in its "influence" on how far the person went depending on the latitude)
+  const phi = toRad((lat1 + lat2) / 2)
+
+  // Convert lat/lon differences into meters
+  const x = toRad(dLon) * R * Math.cos(phi);
+  const y = toRad(dLat) * R;
+  // return the value from the distance formula
+  return Math.sqrt(x*x + y*y);  
 }
