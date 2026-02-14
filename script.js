@@ -93,7 +93,7 @@ function stopTracking() {
   }
 }
 
-
+  let totaldist = 0;
 // ---------------------------------------------
 // LOG POSITION (runs every 3 seconds)
 // ---------------------------------------------
@@ -105,6 +105,7 @@ function logPosition(pos) {
 
   // Default distance is 0 for the first logged point.
   let distance = 0;
+  let distance2 = 0;
 
   // If we have a previous logged point, compute distance.
   if (lastLoggedPosition) {
@@ -113,12 +114,16 @@ function logPosition(pos) {
       lat, lon
     );
   }
-  //PHILIP: If we have a previous logged piont, then compute distance using distance formula.
+  //PHILIP: If we have a previous logged point, then compute distance using distance formula.
   if (lastLoggedPosition) {
     distance2 = distFormula(
       lastLoggedPosition.lat, lastLoggedPosition.lon, 
       lat, lon
     );
+  }
+  //PHILIP: If we have a previous logged point, then compute the total distance
+  if (lastLoggedPosition) {
+    totaldist = totaldist + distance2;
   }
 
   // Update last logged position.
@@ -132,6 +137,7 @@ function logPosition(pos) {
       <td>${lon.toFixed(6)}</td>
       <td>${distance.toFixed(2)}</td>
       <td>${distance2.toFixed(2)}</td>
+      <td>${totaldist.toFixed(2)}</td>
     </tr>
   `;
 
